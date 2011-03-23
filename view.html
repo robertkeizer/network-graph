@@ -9,15 +9,13 @@
         $(document).ready( function( ){
 	    var counterArray = new Array();
             function message( msg ){
-                $("#messages").append( msg + "<br />\n" );
-		
 		if( counterArray[msg.toString()] > 0 ){
 			counterArray[msg.toString()]++;
 		}else{
 			counterArray[msg.toString()] = 1;
 		};
 
-		// Do some graph magic here .. everythings in counterArray.
+		$("#messages").append( msg + "(" + counterArray[msg.toString()] + ")<br />\n" );
             };
 
             function esc( msg ){
