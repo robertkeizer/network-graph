@@ -1,15 +1,16 @@
+console.log( "Starting up.." );
 var sys			= require( "sys" );
 var dns			= require( "dns" );
+var http		= require( "http" );
 var pcap		= require( "pcap" );
 var pcap_session	= pcap.createSession( "", "tcp port 80" );
+console.log( "Listening on " + pcap_session.device_name );
 
 var blacklistDnsCache = new Array();
 blacklistDnsCache["192.168.1.100"] = 1;
 
 var dnsCacheArray = new Array();
 dnsCacheArray["127.0.0.1"] = "localhost";
-
-console.log( "Listening on " + pcap_session.device_name );
 
 pcap_session.on( "packet", function( raw_packet ){
 	var packet	= pcap.decode.packet( raw_packet );
