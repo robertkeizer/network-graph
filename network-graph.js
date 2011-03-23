@@ -26,7 +26,16 @@ httpServer = http.createServer( function(req,res){
 			} );
 			break;
 		case "/jquery.js":
-		case "/protovis.js":
+                        fs.readFile(__dirname+path,function(err,data){
+                                if(err){
+                                        return send404(res);
+                                };
+                                res.writeHead( 200, {'Content-Type': 'text/javascript'} );
+                                res.write( data );
+                                res.end();
+                        } );
+                        break;
+		case "/jquery.flot.js":
 			fs.readFile(__dirname+path,function(err,data){
 				if(err){
 					return send404(res);
