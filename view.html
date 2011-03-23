@@ -3,30 +3,34 @@
 		<title>network-graph</title>
 		<script src="/socket.io/socket.io.js" type='text/javascript'></script>
 		<script src="/jquery.js" type="text/javascript"></script>
+		<script src="/protovis.js" type="text/javascript"></script>
 	</head>
 <body>
 	<script type='text/javascript'>
-		function message( msg ){
-			$("#messages").append( msg + "<br />\n" );
-		};
+		$(document).ready( function( ){
+			function message( msg ){
+				$("#messages").append( msg + "<br />\n" );
+			};
 
-		function esc( msg ){
-			return msg.replace(/</g, '&lt;').replace(/>/g, '&gt;' );
-		};
-		
-		var socket = new io.Socket( null, { port: 8080, rememberTransport: false } );
-		socket.connect();
-		socket.on( 'message', function( obj ){
+			function esc( msg ){
+				return msg.replace(/</g, '&lt;').replace(/>/g, '&gt;' );
+			};
+			
+			var socket = new io.Socket( null, { port: 8080, rememberTransport: false } );
+			socket.connect();
+			socket.on( 'message', function( obj ){
 			message( obj );
-		} );
+			} );
 
-		socket.on( 'connection', function( ){ message( {message: ['System', 'Connected']} ); } );
-		socket.on( 'disconnect', function( ){ message( {message: ['System', 'Disconnected']} ); } );
-		socket.on( 'reconnect', function( ){ message( {message: ['System', 'Reconnected to server']} ); } );
-		socket.on( 'reconnecting', function( nextRetry ){ message( {message: ['System', 'Attempting to re-connect to the server. Next retry in ' + nextRetry + 'ms'] } ); } );
-		socket.on( 'reconnect_failed', function( ){ message( {message: ['System', 'Reconnected to server FAILED.'] } ); } );
+			socket.on( 'connection', function( ){ message( {message: ['System', 'Connected']} ); } );
+			socket.on( 'disconnect', function( ){ message( {message: ['System', 'Disconnected']} ); } );
+			socket.on( 'reconnect', function( ){ message( {message: ['System', 'Reconnected to server']} ); } );
+			socket.on( 'reconnecting', function( nextRetry ){ message( {message: ['System', 'Attempting to re-connect to the server. Next retry in ' + nextRetry + 'ms'] } ); } );
+			socket.on( 'reconnect_failed', function( ){ message( {message: ['System', 'Reconnected to server FAILED.'] } ); } );
+		} );
 	</script>
 	<h1>network-graph</h1>
+	<canvas id="connections" width="800" height="600"></canvas>
 	<div id='messages'></div>
 </body>
 </html>
