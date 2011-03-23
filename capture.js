@@ -29,11 +29,9 @@ pcap_session.on( "packet", function( raw_packet ){
 		}
 	};
 
-	if( typeof dnsCacheArray[packet.link.ip.daddr.toString()] == 'undefined' && typeof blacklistDnsCache[packet.link.ip.daddr.toString()] == 'undefined' ){
-		console.log( "Broke on ip of " + packet.link.ip.daddr.toString() );
-	}else if( typeof dnsCacheArray[packet.link.ip.daddr.toString()] != 'undefined' ){
+	if( typeof dnsCacheArray[packet.link.ip.daddr.toString()] != 'undefined' ){
 		console.log( dnsCacheArray[packet.link.ip.daddr.toString()] );
-	}else if( typeof blacklistDnsCache[packet.link.ip.daddr.toString()] != 'undefined' ){
+	}else{
 		console.log( packet.link.ip.daddr.toString() );
 	}
 } );
