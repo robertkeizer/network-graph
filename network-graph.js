@@ -110,8 +110,6 @@ pcap_session.on( "packet", function( raw_packet ){
 		var nameToPass = packet.link.ip.daddr.toString();
 	}
 
-	console.log( nameToPass );
-	// nameToPass contains the ip/dns. Send it to the clients.
-
-	boundIo.broadcast( nameToPass );
+	var dataToPass = [ { dateObj: new Date(), address: nameToPass } ];
+	boundIo.broadcast( dataToPass );
 } );
