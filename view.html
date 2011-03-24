@@ -9,25 +9,24 @@
 			font-family: Arial;
 			font-size: 120%;
 		}
-		#messages{
-			font-weight: bold;
+		.box {
 			padding: 10px;
 			background-color: #eee;
 			border: 1px solid #ccc;
 		}
+		#messages{
+			font-weight: bold;
+		}
 		#debug{
-			padding: 10px;
 			font-size: 60%;
-			background-color: #eee;
-			border: 1px solid #ccc;
 		}
 	</style>
     </head>
 <body>
 	<h1>network-graph</h1>
-	<div id='messages'>Currently: <span id='status'></span></div>
-	<h2>Debug:</h2>
-	<div id='debug'></div>
+	<div id='messages' class='box'>Currently: <span id='status'></span></div>
+	<br />
+	<div id='debug' class='box'></div>
 	<script type='text/javascript'>
 		$(document).ready( function( ){
 			function esc( msg ){
