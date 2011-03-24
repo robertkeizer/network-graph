@@ -4,10 +4,6 @@
         <script src="/socket.io/socket.io.js" type='text/javascript'></script>
         <script src="/jquery.js" type="text/javascript"></script>
 	<script src="/jquery.flot.js" type="text/javascript"></script>
-	<script type='text/javascript'>
-		masterIndexArray	= new Array( );
-		tmpDataString		= '';
-	</script>
 	<style type='text/css'>
 		body{
 			font-family: Arial;
@@ -15,71 +11,50 @@
 		}
 		#messages{
 			font-weight: bold;
+			padding: 10px;
+			background-color: #eee;
+			border: 1px solid #ccc;
 		}
 		#debug{
+			padding: 10px;
 			font-size: 60%;
+			background-color: #eee;
+			border: 1px solid #ccc;
 		}
 	</style>
     </head>
 <body>
-            <h1>network-graph</h1>
-	    <div id='messages'></div>
-            <div id='debug'></div>
-            <div id='placeholder' style='width:1200px;height:500px;'></div>
+	<h1>network-graph</h1>
+	<div id='messages'>Currently: <span id='status'></span></div>
+	<h2>Debug:</h2>
+	<div id='debug'></div>
 	<script type='text/javascript'>
-          $(document).ready( function( ){
-            function handleUpdate( dateString, addressString ){
-		// Create a date object from the date string..
-		var dateObj = new Date( dateString );
-		// Create a safe addressString name to be used for that line.. 
-		var safeAddressString = addressString.toString().replace( /[^a-zA-Z0-9]/g, '_' );
+		$(document).ready( function( ){
+			function esc( msg ){
+				return msg.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+			}
 
-		masterIndexArray.push( safeAddressString );
+			function message( msg ){
+				$("#status").html( esc( msg ) + "<br />\n" );
+			}
 
-		if( typeof window['masterArray_' + safeAddressString]  == 'undefined' ){
-			window['masterArray_' + safeAddressString] = new Array( );
-		}
+			function handleInformation( obj ){
+				var dateObj	= new Date( obj.dateObj );
+				var saddr	= obj.saddr;
+				var daddr	= obj.daddr;
 
-		window['masterArray_' + safeAddressString].push( "[ " + dateObj.getTime() + "000, " + window['masterArray_'+safeAddressString].length+1 + "]" );
+				$("#debug").append( dateObj.getTime() + " " + saddr + " -> " + daddr + '<br>\n' );
+			}
 
-		// debug - just show that something is happening..
-		$("#debug").append( '.' );
-		
-		drawGraph();
-            };
+			message( "Starting up.." );
+			
+			var socket	= new io.Socket( null, { port: 8080, rememberTransport: false } );
+			socket.connect( );
 
-	    function drawGraph( ){
-		tmpDataString = '[ \n';
-		for( var x=0; x<masterIndexArray.length; x++ ){
-			tmpDataString += '\t[ ' + window['masterArray_' + masterIndexArray[x] ] + ' ],\n';
-		};
-		tmpDataString += '\t[,0]\n]';
-
-		$.plot( "#placeholder", tmpDataString );
-	    };
-
-	    function message( msg ){
-		$("#messages").html( esc( msg ) + "<br />\n" );
-	    };
-
-            function esc( msg ){
-                return msg.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;' );
-            };
-            
-            var socket = new io.Socket( null, { port: 8080, rememberTransport: false } );
-	    socket.connect();
-	    socket.on( 'message', function( obj ){
-		handleUpdate( obj.dateObj, obj.address.toString() );
-       	    } );
-		
-	    message( "Starting up.." );
-
-	    socket.on( 'connect', function( ){ message( 'Connected' ); } );
-	    socket.on( 'disconnect', function( ){ message( 'Disconnected'); } );
-	    socket.on( 'reconnect', function( ){ message('Reconnected to server'); } );
-	    socket.on( 'reconnecting', function( nextRetry ){ message( 'Attempting to re-connect to the server. Next retry in ' + nextRetry + 'ms' ); } );
-	    socket.on( 'reconnect_failed', function( ){ message( 'Reconnected to server FAILED.' ); } );
-       } );
-    </script>
+			socket.on( 'message', function( obj ){ handleInformation( obj ); } );
+			socket.on( 'connect', function( ){ message( 'Connected' ); } );
+			socket.on( 'disconnect', function( ){ message( 'Disconnected' ); } );	
+		});
+	</script>
 </body>
 </html>

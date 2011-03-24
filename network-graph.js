@@ -86,30 +86,56 @@ blacklistDnsCache["192.168.1.100"] = 1;
 var dnsCacheArray = new Array();
 dnsCacheArray["127.0.0.1"] = "localhost";
 
+// On a packet, grab the info and broadcast it.
 pcap_session.on( "packet", function( raw_packet ){
-	var packet	= pcap.decode.packet( raw_packet );
+	var objectToPass	= grabInfo( pcap.decode.packet( raw_packet ) );
+	boundIo.broadcast( objectToPass );
+} );
+
+function grabInfo( packet ){
+	// Grab the source address.
+	if( typeof dnsCacheArray[packet.link.ip.saddr.toString()] == 'undefined' ){
+		if( typeof blacklistDnsCache[packet.link.ip.saddr.toString()] == 'undefined' ){
+			dns.reverse( packet.link.ip.saddr, function( err, domains ){
+				if( !err ){
+					for( var x=0; x<domains.length; x++ ){
+						dnsCacheArray[packet.link.ip.saddr.toString()] = domains[x];
+					}
+				}else{
+					blacklistDnsCache[packet.link.ip.saddr.toString()] = 1;
+				}
+			} );
+		}
+	};
+
+	var saddrToUse	= "";
+	if( typeof dnsCacheArray[packet.link.ip.saddr.toString()] != 'undefined' ){
+		saddrToUse	= dnsCacheArray[packet.link.ip.saddr.toString()];
+	}else{
+		saddrToUse	= packet.link.ip.saddr.toString();
+	}
+
+	// Grab the destination address.
 	if( typeof dnsCacheArray[packet.link.ip.daddr.toString()] == 'undefined' ){
 		if( typeof blacklistDnsCache[packet.link.ip.daddr.toString()] == 'undefined' ){
 			dns.reverse( packet.link.ip.daddr, function( err, domains ){
 				if( !err ){
 					for( var x=0; x<domains.length; x++ ){
-						dnsCacheArray[packet.link.ip.daddr.toString()] = domains[x];
+						dnsCacheArray[packet.link.ip.daddr.toString()] = 1;
 					}
 				}else{
 					blacklistDnsCache[packet.link.ip.daddr.toString()] = 1;
 				}
 			} );
-		}else{
-			//console.log( "Skipping blacklisted ip of " + packet.link.ip.daddr );
 		}
 	};
 
+	var daddrToUse	= "";
 	if( typeof dnsCacheArray[packet.link.ip.daddr.toString()] != 'undefined' ){
-		var nameToPass = dnsCacheArray[packet.link.ip.daddr.toString()];
+		daddrToUse	= dnsCacheArray[packet.link.ip.daddr.toString()];
 	}else{
-		var nameToPass = packet.link.ip.daddr.toString();
+		daddrToUse	= packet.link.ip.daddr.toString();
 	}
 
-	var dataToPass = [ { dateObj: new Date(), address: nameToPass } ];
-	boundIo.broadcast( dataToPass );
-} );
+	return [ { dateObj: new Date, saddr: saddrToUse, daddr: daddrToUse } ];
+}
