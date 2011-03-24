@@ -20,12 +20,17 @@
 		#debug{
 			font-size: 60%;
 		}
+		#graph{
+			width: 800px;
+			height: 200px;
+			margin: 25px;
+		}
 	</style>
     </head>
 <body>
 	<h1>network-graph</h1>
 	<div id='messages' class='box'>Currently: <span id='status'></span></div>
-	<br />
+	<div id='graph'></div>
 	<div id='debug' class='box'></div>
 	<script type='text/javascript'>
 		$(document).ready( function( ){
@@ -45,14 +50,17 @@
 				$("#debug").append( dateObj.getTime() + " " + saddr + " -> " + daddr + '<br>\n' );
 			}
 
-			message( "Starting up.." );
+			message( "Starting up socket.io" );
 			
 			var socket	= new io.Socket( null, { port: 8080, rememberTransport: false } );
 			socket.connect( );
 
 			socket.on( 'message', function( obj ){ handleInformation( obj ); } );
 			socket.on( 'connect', function( ){ message( 'Connected' ); } );
-			socket.on( 'disconnect', function( ){ message( 'Disconnected' ); } );	
+			socket.on( 'disconnect', function( ){ message( 'Disconnected' ); } );
+
+			message( "Starting up flot" );
+			var plotInstance	= $.plot( "#graph", [ [0,1],[1,2],[2,4] ] );
 		});
 	</script>
 </body>
