@@ -13,8 +13,9 @@
 			padding: 10px;
 			background-color: #eee;
 			border: 1px solid #ccc;
+			width: 835px;
 		}
-		#messages{
+		.messages{
 			font-weight: bold;
 		}
 		#debug{
@@ -29,11 +30,13 @@
     </head>
 <body>
 	<h1>network-graph</h1>
-	<div id='messages' class='box'>Currently: <span id='status'></span></div>
+	<div class='box messages'>Currently: <span id='status'></span></div>
 	<div id='graph'></div>
+	<div class='messages'>Debug:</div>
 	<div id='debug' class='box'></div>
 	<script type='text/javascript'>
 		var globalDataArray	= Array( );
+		var plotInstance	= $.plot( "#graph", globalDataArray );
 
 		$(document).ready( function( ){
 			function esc( msg ){
