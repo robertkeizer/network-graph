@@ -35,16 +35,6 @@ httpServer = http.createServer( function(req,res){
                                 res.end();
                         } );
                         break;
-		case "/jquery.flot.js":
-			fs.readFile(__dirname+path,function(err,data){
-				if(err){
-					return send404(res);
-				};
-				res.writeHead( 200, {'Content-Type': 'text/javascript'} );
-				res.write( data );
-				res.end();
-			} );
-			break;
 		default:
 			send404(res);
 	};

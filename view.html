@@ -3,7 +3,6 @@
         <title>network-graph</title>
         <script src="/socket.io/socket.io.js" type='text/javascript'></script>
         <script src="/jquery.js" type="text/javascript"></script>
-	<script src="/jquery.flot.js" type="text/javascript"></script>
 	<style type='text/css'>
 		body{
 			font-family: Arial;
@@ -30,9 +29,11 @@
 <body>
 	<h1>network-graph</h1>
 	<div id='messages' class='box'>Currently: <span id='status'></span></div>
-	<div id='graph'></div>
+	<canvas id='graph'></canvas>
 	<div id='debug' class='box'></div>
 	<script type='text/javascript'>
+		var globalDataArray	= Array( );
+
 		$(document).ready( function( ){
 			function esc( msg ){
 				return msg.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -58,9 +59,6 @@
 			socket.on( 'message', function( obj ){ handleInformation( obj ); } );
 			socket.on( 'connect', function( ){ message( 'Connected' ); } );
 			socket.on( 'disconnect', function( ){ message( 'Disconnected' ); } );
-
-			message( "Starting up flot" );
-			var plotInstance	= $.plot( "#graph", [ [0,1],[1,2],[2,4] ] );
 		});
 	</script>
 </body>
