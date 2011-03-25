@@ -48,7 +48,11 @@
 			}
 
 			function handleInformation( obj ){
-				$("#debug").append( obj.toString() + "<br>\n" );
+				var current_cap_time	= obj.current_cap_time;
+				var session_key		= obj.session_key;
+				var status		= obj.status;
+
+				$("#debug").append( current_cap_time + ", " + session_key + " " + status + "<br>\n" );
 			}
 
 			message( "Starting up socket.io" );

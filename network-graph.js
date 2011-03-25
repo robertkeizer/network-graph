@@ -57,38 +57,28 @@ function send404( res ){
 
 httpServer.listen(httpPort);
 
-console.log( "Starting up socket.io .." );
-
 var boundIo = io.listen( httpServer );
-boundIo.on( 'connection', function serveClient( client ){
-	client.on( 'message', function(message){
-		console.log( 'Received message of ' + message ) ;
-	} );
-
-	client.on( 'diconnect', function( ){
-		client.broadcast( { announcement: client.sessionId + 'disconnected.' } );
-	} );
-} );
+console.log( "Starting up socket.io .." );
 
 var pcap_session	= pcap.createSession( "", filter );
 var tcp_tracker		= new pcap.TCP_tracker( );
-
-console.log( "Monitoring traffic on " + pcap_session.device_name + " with filter of '" + filter + "'.." );
-console.log( "Starting TCP_tracker.." );
 
 pcap_session.on( "packet", function( raw_packet ){
 	tcp_tracker.track_packet( pcap.decode.packet( raw_packet ) );
 } );
 
+console.log( "Monitoring traffic on " + pcap_session.device_name + " with filter of '" + filter + "'.." );
+
 tcp_tracker.on( 'start', function( session ){
-	var debugLine = session.current_cap_time + ", " + session.key + " TCP start.";
-	console.log( debugLine );
-	boundIo.broadcast( debugLine );
+	sendToClients( session, 'start' );
 } );
 
 tcp_tracker.on( 'end', function( session ){
-	var debugLine	= session.current_cap_time + ", " + session.key + " TCP end";
-	console.log( debugLine );
-
-	boundIo.broadcast( debugLine );
+	sendToClients( session, 'end' );
 } );
+
+function sendToClients( session, status ){
+	boundIo.broadcast( [ {	current_cap_time: session.current_cap_time, 
+				session_key: session.key,
+				status: status } ] );
+};
