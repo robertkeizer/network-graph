@@ -35,10 +35,13 @@
 	<div class='messages'>Debug:</div>
 	<div id='debug' class='box'></div>
 	<script type='text/javascript'>
+		// Defined outside the ready function ( debugging purposes ).
 		var globalDataArray	= Array( );
-		var plotInstance	= $.plot( "#graph", globalDataArray );
+		var plotInstance;
 
 		$(document).ready( function( ){
+			plotInstance	= $.plot( "#graph", globalDataArray );
+
 			function esc( msg ){
 				return msg.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
 			}
@@ -53,6 +56,23 @@
 				var status		= obj.status;
 
 				$("#debug").append( current_cap_time + ", " + session_key + " " + status + "<br>\n" );
+
+				if( status == 'start' ){
+					// Check to see if there is an array already open with this session_key. If not, create one.
+					if( typeof globalDataArray[session_key] === 'undefined' ){
+						$("#debug").append( "NEW Session key!<br>\n" );
+						globalDataArray[session_key]	= new Array( );
+					}else{
+						$("#debug").append( "USING Session key!<br>\n" );
+					}
+					
+					// Push the current_cap_time onto the dataArray. 2nd value is .length ( or the count ).
+					globalDataArray[session_key].push( current_cap_time, globalDataArray[session_key].length );
+
+				}else if( status == 'end' ){
+					// Go through the number of sessions with session_key, decrement by one until 0, then remove the array.
+					
+				}
 			}
 
 			message( "Starting up socket.io" );
