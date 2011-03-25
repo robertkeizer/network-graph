@@ -6,37 +6,44 @@ var http		= require( "http" );
 var url			= require( "url" );
 var io			= require( "socket.io" );
 var pcap		= require( "pcap" );
-var pcap_session	= pcap.createSession( "", "tcp port 80" );
+
 var httpPort 		= "8080";
+var filter		= "tcp";
 
 console.log( "Starting HTTP server on port " + httpPort );
 
 httpServer = http.createServer( function(req,res){
         var path = url.parse(req.url).pathname;
-	switch( path ){
-		case "/":
-			return sendMessage( res, "Try /view.html" );
-			break;
-		case "/view.html":
-			fs.readFile(__dirname+path,function(err,data){
-				if(err){
-					return send404(res);
-				};
-				sendMessage( res, data );
-			} );
-			break;
-		case "/jquery.js":
-                        fs.readFile(__dirname+path,function(err,data){
-                                if(err){
-                                        return send404(res);
-                                };
-                                res.writeHead( 200, {'Content-Type': 'text/javascript'} );
-                                res.write( data );
-                                res.end();
-                        } );
-                        break;
-		default:
-			send404(res);
+
+	// No file specified - shove to view.html
+	if( path == '/' ){
+		var path = '/view.html';
+		fs.readFile(__dirname+path,function(err,data){
+			if(err){ return send404(res); };
+			sendMessage( res, data );
+		} );
+
+	// html files..
+	}else if ( path.match( /\.html$/ ) ){
+		fs.readFile(__dirname+path,function(err,data){
+			if(err){ return send404(res); };
+			res.writeHead( 200, {'Content-Type': 'text/html'} );
+			res.write( data );
+			res.end();
+		} );
+
+	// javascript files..
+	}else if ( path.match( /\.js$/ ) ){
+		fs.readFile(__dirname+path,function(err,data){
+			if(err){ return send404(res); };
+			res.writeHead( 200, {'Content-Type': 'text/javascript'} );
+			res.write( data );
+			res.end();
+		} );
+
+	// not found.
+	}else{
+		send404(res);
 	};
 } );
 
@@ -67,65 +74,25 @@ boundIo.on( 'connection', function serveClient( client ){
 	} );
 } );
 
+var pcap_session	= pcap.createSession( "", filter );
+var tcp_tracker		= new pcap.TCP_tracker( );
 
-console.log( "Monitoring traffic on on " + pcap_session.device_name + ".." );
+console.log( "Monitoring traffic on " + pcap_session.device_name + " with filter of '" + filter + "'.." );
+console.log( "Starting TCP_tracker.." );
 
-var blacklistDnsCache = new Array();
-blacklistDnsCache["192.168.1.100"] = 1;
-
-var dnsCacheArray = new Array();
-dnsCacheArray["127.0.0.1"] = "localhost";
-
-// On a packet, grab the info and broadcast it.
 pcap_session.on( "packet", function( raw_packet ){
-	var objectToPass	= grabInfo( pcap.decode.packet( raw_packet ) );
-	boundIo.broadcast( objectToPass );
+	tcp_tracker.track_packet( pcap.decode.packet( raw_packet ) );
 } );
 
-function grabInfo( packet ){
-	// Grab the source address.
-	if( typeof dnsCacheArray[packet.link.ip.saddr.toString()] == 'undefined' ){
-		if( typeof blacklistDnsCache[packet.link.ip.saddr.toString()] == 'undefined' ){
-			dns.reverse( packet.link.ip.saddr, function( err, domains ){
-				if( !err ){
-					for( var x=0; x<domains.length; x++ ){
-						dnsCacheArray[packet.link.ip.saddr.toString()] = domains[x];
-					}
-				}else{
-					blacklistDnsCache[packet.link.ip.saddr.toString()] = 1;
-				}
-			} );
-		}
-	};
+tcp_tracker.on( 'start', function( session ){
+	var debugLine = session.current_cap_time + ", " + session.key + " TCP start.";
+	console.log( debugLine );
+	boundIo.broadcast( debugLine );
+} );
 
-	var saddrToUse	= "";
-	if( typeof dnsCacheArray[packet.link.ip.saddr.toString()] != 'undefined' ){
-		saddrToUse	= dnsCacheArray[packet.link.ip.saddr.toString()];
-	}else{
-		saddrToUse	= packet.link.ip.saddr.toString();
-	}
+tcp_tracker.on( 'end', function( session ){
+	var debugLine	= session.current_cap_time + ", " + session.key + " TCP end";
+	console.log( debugLine );
 
-	// Grab the destination address.
-	if( typeof dnsCacheArray[packet.link.ip.daddr.toString()] == 'undefined' ){
-		if( typeof blacklistDnsCache[packet.link.ip.daddr.toString()] == 'undefined' ){
-			dns.reverse( packet.link.ip.daddr, function( err, domains ){
-				if( !err ){
-					for( var x=0; x<domains.length; x++ ){
-						dnsCacheArray[packet.link.ip.daddr.toString()] = 1;
-					}
-				}else{
-					blacklistDnsCache[packet.link.ip.daddr.toString()] = 1;
-				}
-			} );
-		}
-	};
-
-	var daddrToUse	= "";
-	if( typeof dnsCacheArray[packet.link.ip.daddr.toString()] != 'undefined' ){
-		daddrToUse	= dnsCacheArray[packet.link.ip.daddr.toString()];
-	}else{
-		daddrToUse	= packet.link.ip.daddr.toString();
-	}
-
-	return [ { dateObj: new Date, saddr: saddrToUse, daddr: daddrToUse } ];
-}
+	boundIo.broadcast( debugLine );
+} );
