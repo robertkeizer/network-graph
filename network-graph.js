@@ -78,7 +78,11 @@ tcp_tracker.on( 'end', function( session ){
 } );
 
 function sendToClients( session, status ){
+	
+	// ports change frequently enough, we just want the IP's rather than the full key.
+	var hostSessionKey	= session.key.replace( /:[0-9]*/g, '' );
+	
 	boundIo.broadcast( [ {	current_cap_time: session.current_cap_time, 
-				session_key: session.key,
+				session_key: hostSessionKey,
 				status: status } ] );
 };
