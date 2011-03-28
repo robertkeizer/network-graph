@@ -55,14 +55,24 @@
 			var dataString = "[ ";
 			// Each connection..
 			for( var x=0; x<globalIndexArray.length; x++ ){
+
 				var label		= globalIndexArray[x][1];
 				var tmpGlobalDataArray	= window[globalIndexArray[x][0]];
+
+				// Append another element to the globalDataArray - namely the current time and the current count. Allows for smooth graphs.
+				var currentTime		= new Date( ).getTime();
+				var tmpArrayToAdd	= new Array( );
+				tmpArrayToAdd[0]	= currentTime;
+				tmpArrayToAdd[1]	= tmpGlobalDataArray[tmpGlobalDataArray.length-1][1];
+
+				tmpGlobalDataArray.push( tmpArrayToAdd );
 				
-				dataString	+= " { label: \"" + label + "\", data: [ ";
+				dataString	+= " { lines: { show: true }, points: { show: true }, label: \"" + label + "\", data: [ ";
 
 				// Loop through the data points in the particular connection array.
 				for( var y=0; y<tmpGlobalDataArray.length; y++ ){
 					dataString += " [ " + tmpGlobalDataArray[y][0] + ", " + tmpGlobalDataArray[y][1] + " ]";
+
 					// Append a comma unless the last element in the array.
 					if( y !== tmpGlobalDataArray.length-1 ){
 						dataString += ",";
@@ -112,6 +122,7 @@
 						}
 					}
 
+					// The globalIndexArray
 					if( !found ){
 						var tmpArray	= [];
 						tmpArray[0]	= session_key;
@@ -120,19 +131,44 @@
 						globalIndexArray.push( tmpArray );
 					}
 					
+					// Global variable containing data.. Define if not defined already.
 					if( typeof window[session_key] === 'undefined' ){
 						window[session_key]	= new Array( );
 					}
 
+					// tmpArray[-date-,-number-] gets pushed onto the global variable.
 					var tmpArray	= new Array( );
 					tmpArray[0]	= current_cap_time;
 					tmpArray[1]	= window[session_key].length+1;
 
 					window[session_key].push( tmpArray );
+				}else if( status == 'end' ){
+					debug( "GOT END packet.. session_key: '" + session_key + "'" );
+					var found = false;
+					for( var x=0; x<globalIndexArray.length; x++ ){
+						if( globalIndexArray[x][0] == session_key ){
+							found = true;
+						}
+					}
+
+					if( !found ){
+						debug( "Possible error. Got tcp session end statement without session being in globalIndexArray." );
+					}else{
+						// In globalIndexArray, check to see if global var is defined.
+						if( typeof window[session_key] === 'undefined' ){
+							debug( "Possible error. Session is in globalIndexArray, but no global variable containing data is set." );
+						}else{
+							// Append a new array to the global data one.. decrement number of connections..
+							var tmpArray	= new Array( );
+							tmpArray[0]	= current_cap_time;
+							tmpArray[1]	= window[session_key].length-1;
+
+							window[session_key].push( tmpArray );
+						}
+					}
 				}
-				// Not called after every packet anymore to facilitate smooth graph..
-				//updateGraph( );
-				debug( "Handled packet time: '" + current_cap_time + "', session: '" + obj.session_key + "'" );
+
+				debug( "Handled tcp session information. time: '" + current_cap_time + "', session: '" + obj.session_key + "'" );
 			}
 
 			message( "Starting up socket.io" );
