@@ -21,17 +21,37 @@
 		#debug{
 			font-size: 60%;
 		}
-		#graph{
-			width: 800px;
+		#container{
+			width: 1000px;
 			height: 200px;
 			margin: 25px;
+		}
+		#graph{
+			height: 200px;
+			width: 800px;
+			align: left;
+		}
+		#legendContainer{
+			font-size: 80%;
+			vertical-align: top;
 		}
 	</style>
     </head>
 <body>
 	<h1>network-graph</h1>
 	<div class='box messages'>Currently: <span id='status'></span></div>
-	<div id='graph'></div>
+	<div id='container'>
+		<table>
+			<tr>
+				<td>
+					<div id='graph'></div>
+				</td>
+				<td valign='top'>
+					<div id='legendContainer'></div>
+				</td>
+			</tr>
+		</table>
+	</div>
 	<div class='messages'>Debug:</div>
 	<div id='debug' class='box'></div>
 	<script type='text/javascript'>
@@ -43,13 +63,20 @@
 		var plotOptions		= {
 						series: { shadowSize: 0 },
 						yaxis: { min: 0 },
-						xaxis: { mode: "time" }
+						xaxis: {
+							mode: "time",
+							minTickSize: [ 5, "second" ]
+						 },
+						legend: {
+							show: true,
+							container: $("#legendContainer")
+						}
 					};
 
 		// How fast in ms to update the graph.. > will eat CPU on clients.
 		var updateInterval	= 30;
 
-		// How many seconds should the graph show at any given time? Default 1 minute.
+		// How many microseconds should the graph show at any given time?
 		var graphTimeSize	= 1000*60*1;
 
 		var globalIndexArray	= [ ];
@@ -101,7 +128,7 @@
 				tmpGlobalDataArray.push( tmpArrayToAdd );
 				
 				// Start defining the dataString.. 
-				dataString	+= "{ label: \"" + label + "\", data: [ ";
+				dataString	+= "{ lines: { show: true, fill: 0.1, lineWidth: 2 }, label: \"" + label + "\", data: [ ";
 
 				// Loop through the data points in the particular connection array.
 				for( var y=0; y<tmpGlobalDataArray.length; y++ ){
