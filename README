@@ -1,1 +1,3 @@
-Visually see network activity.
+Written in javascript utilizing nodejs as well as node modules: socket.io, pcap, http.
+
+Allows a website to be accessible that displays in realtime the current tcp connections.
