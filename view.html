@@ -171,10 +171,16 @@
 						window[session_key]	= new Array( );
 					}
 
-					// tmpArray[-date-,-number-] gets pushed onto the global variable.
+					var tmpGlobalDataArray	= window[session_key];
+					
 					var tmpArray	= new Array( );
 					tmpArray[0]	= current_cap_time;
-					tmpArray[1]	= window[session_key].length+1;
+
+					if( tmpGlobalDataArray.length == 0 ){
+						tmpArray[1] = 1;
+					}else{
+						tmpArray[1]	= tmpGlobalDataArray[tmpGlobalDataArray.length-1][1]+1;
+					}
 
 					window[session_key].push( tmpArray );
 				}else if( status == 'end' ){
@@ -192,6 +198,8 @@
 						if( typeof window[session_key] === 'undefined' ){
 							debug( "Possible error. Session is in globalIndexArray, but no global variable containing data is set." );
 						}else{
+							var tmpGlobalDataArray	= window[session_key];
+
 							// Append a new array to the global data one.. decrement number of connections..
 							var tmpArray	= new Array( );
 							tmpArray[0]	= current_cap_time;
@@ -201,6 +209,8 @@
 						}
 					}
 				}
+
+				debug( "Session: '" + obj.session_key + "', status: '" + obj.status + "'" );
 			}
 
 			message( "Starting up socket.io" );
