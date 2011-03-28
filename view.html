@@ -46,12 +46,21 @@
 						xaxis: { mode: "time" }
 					};
 
+		// How fast in ms to update the graph.. > will eat CPU on clients.
 		var updateInterval	= 30;
+
+		// How many seconds should the graph show at any given time? Default 1 minute.
+		var graphTimeSize	= 1000*60*1;
 
 		var globalIndexArray	= [ ];
 		var plotInstance	= $.plot( "#graph", [ [ [ ] ] ], plotOptions );
 
 		function updateGraph( ){
+
+			// Why define this in the loop? It's close enough to be called every updateInterval.
+			var currentTime	= new Date( ).getTime();
+			var minTime	= currentTime - graphTimeSize;
+
 			var dataString = "[ ";
 			// Each connection..
 			for( var x=0; x<globalIndexArray.length; x++ ){
@@ -59,14 +68,21 @@
 				var label		= globalIndexArray[x][1];
 				var tmpGlobalDataArray	= window[globalIndexArray[x][0]];
 
-				// Append another element to the globalDataArray - namely the current time and the current count. Allows for smooth graphs.
-				var currentTime		= new Date( ).getTime();
+				// Go through the tmpGlobalDataArray and remove old elements.
+				// This can cause js errors ( not fatal ones ) since there is no check further down to see if its the last one.
+				for( var t=0; t<tmpGlobalDataArray.length; t++ ){
+					if( tmpGlobalDataArray[t][0] < minTime ){
+						tmpGlobalDataArray.splice( t, 1 );
+					}
+				}
+
+				// Add a new element with the current time.. this makes a nice smooth graph.
 				var tmpArrayToAdd	= new Array( );
 				tmpArrayToAdd[0]	= currentTime;
 				tmpArrayToAdd[1]	= tmpGlobalDataArray[tmpGlobalDataArray.length-1][1];
-
 				tmpGlobalDataArray.push( tmpArrayToAdd );
 				
+				// Start defining the dataString.. 
 				dataString	+= "{ label: \"" + label + "\", data: [ ";
 
 				// Loop through the data points in the particular connection array.
