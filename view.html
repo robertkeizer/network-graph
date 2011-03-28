@@ -68,8 +68,26 @@
 				var label		= globalIndexArray[x][1];
 				var tmpGlobalDataArray	= window[globalIndexArray[x][0]];
 
+				// Delete old global vars and remove them from globalIndex if all points are 0
+				// and they've moved past the window.
+				// The if statement is simply for performance.. 
+				if( tmpGlobalDataArray.length > 500 ){
+					var allZero = true;
+					for( var z=0; z<tmpGlobalDataArray.length; z++ ){
+						if( tmpGlobalDataArray[z][1] > 0 ){
+							allZero = false;
+						}
+					}
+
+					if( allZero ){
+						debug( "Removing graph '" + label + "'." );
+						delete window[globalIndexArray[x][0]];
+						globalIndexArray.splice( x, 1 );
+						continue;
+					}
+				}
+
 				// Go through the tmpGlobalDataArray and remove old elements.
-				// This can cause js errors ( not fatal ones ) since there is no check further down to see if its the last one.
 				for( var t=0; t<tmpGlobalDataArray.length; t++ ){
 					if( tmpGlobalDataArray[t][0] < minTime ){
 						tmpGlobalDataArray.splice( t, 1 );
@@ -149,6 +167,7 @@
 					
 					// Global variable containing data.. Define if not defined already.
 					if( typeof window[session_key] === 'undefined' ){
+						debug( "Adding graph '" + obj.session_key + "'" );
 						window[session_key]	= new Array( );
 					}
 
@@ -182,8 +201,6 @@
 						}
 					}
 				}
-
-				debug( "Handled tcp session information. time: '" + current_cap_time + "', session: '" + obj.session_key + "'" );
 			}
 
 			message( "Starting up socket.io" );
