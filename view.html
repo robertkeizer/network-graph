@@ -67,7 +67,7 @@
 
 				tmpGlobalDataArray.push( tmpArrayToAdd );
 				
-				dataString	+= " { lines: { show: true }, points: { show: true }, label: \"" + label + "\", data: [ ";
+				dataString	+= "{ label: \"" + label + "\", data: [ ";
 
 				// Loop through the data points in the particular connection array.
 				for( var y=0; y<tmpGlobalDataArray.length; y++ ){
@@ -143,7 +143,6 @@
 
 					window[session_key].push( tmpArray );
 				}else if( status == 'end' ){
-					debug( "GOT END packet.. session_key: '" + session_key + "'" );
 					var found = false;
 					for( var x=0; x<globalIndexArray.length; x++ ){
 						if( globalIndexArray[x][0] == session_key ){
@@ -161,7 +160,7 @@
 							// Append a new array to the global data one.. decrement number of connections..
 							var tmpArray	= new Array( );
 							tmpArray[0]	= current_cap_time;
-							tmpArray[1]	= window[session_key].length-1;
+							tmpArray[1]	= window[session_key][window[session_key].length-1][1]-1;
 
 							window[session_key].push( tmpArray );
 						}
