@@ -89,3 +89,40 @@ function sendToClients( session, status ){
 				session_key: hostSessionKey,
 				status: status } ] );
 };
+
+// Grab messages from clients..
+boundIo.on( 'message', function( obj ){
+	if( typeof obj.requestType === 'undefined' ){
+		console.log( "Got invalid message from a client.. " );
+	}else{
+		boundIo.send( doRequest( obj ) );
+	}
+} );
+
+// Parse a clients message..
+
+function doRequest( obj ){
+	switch( obj.requestType ){
+		case "get":
+			switch( obj.what ){
+				case "filter":
+					return filter;
+					break;
+				default:
+					return "Unknown 'what' specified in get request.';
+			}
+			break;
+		case "set":
+			switch( obj.what ){
+				case "filter":
+					
+					break;
+				default:
+					return "Unknown 'what' specified in set request.';
+			}
+			break;
+		default:
+			console.log( "Unknown request received." );
+			return "Unknown request received.";
+	}
+}
