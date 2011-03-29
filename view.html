@@ -21,37 +21,29 @@
 		#debug{
 			font-size: 60%;
 		}
-		#container{
-			width: 1000px;
-			height: 200px;
-			margin: 25px;
-		}
 		#graph{
+			margin: 25px;
 			height: 200px;
 			width: 800px;
 			align: left;
+			vertical-align: top;
 		}
 		#legendContainer{
 			font-size: 80%;
 			vertical-align: top;
+			position: absolute;
+			width: 200px;
+			right: 25px;
+			top: 50px;
+			margin: 25px;
 		}
 	</style>
     </head>
 <body>
 	<h1>network-graph</h1>
 	<div class='box messages'>Currently: <span id='status'></span></div>
-	<div id='container'>
-		<table>
-			<tr>
-				<td>
-					<div id='graph'></div>
-				</td>
-				<td valign='top'>
-					<div id='legendContainer'></div>
-				</td>
-			</tr>
-		</table>
-	</div>
+	<div id='graph'></div>
+	<div id='legendContainer'></div>
 	<div class='messages'>Debug:</div>
 	<div id='debug' class='box'></div>
 	<script type='text/javascript'>
@@ -169,7 +161,16 @@
 
 			function handleInformation( obj ){
 				// Grab the information passed from network-graph.js on the server side.
-				var current_cap_time	= obj.current_cap_time.toString().replace(/[0-9]{3}\.[0-9]*/, '') + "000";
+				var current_cap_time	= obj.current_cap_time.toString().replace(/[0-9]{3}\.[0-9]*/, '');
+
+				// Check to see if current_cap_time is in the past. If it is, replace it with the current time.
+				var currentDate	= Math.round( new Date( ).getTime( ) / 1000 );
+				if( current_cap_time < currentDate ){
+					current_cap_time = currentDate + "000";
+				}else{
+					current_cap_time += "000";
+				}
+
 				// The prefix of 'a_' and the replacement is so that the session can be used as an array index in js.
 				var session_key		= "a_" + obj.session_key.replace( /[-.]/g, '_' );
 				var status		= obj.status;

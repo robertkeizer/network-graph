@@ -109,7 +109,7 @@ function doRequest( obj ){
 					return filter;
 					break;
 				default:
-					return "Unknown 'what' specified in get request.';
+					return "Unknown 'what' specified in get request.";
 			}
 			break;
 		case "set":
@@ -118,7 +118,7 @@ function doRequest( obj ){
 					
 					break;
 				default:
-					return "Unknown 'what' specified in set request.';
+					return "Unknown 'what' specified in set request.";
 			}
 			break;
 		default:
