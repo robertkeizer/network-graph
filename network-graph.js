@@ -10,6 +10,10 @@ var pcap		= require( "pcap" );
 var httpPort 		= "8080";
 var filter		= "tcp";
 
+var dnsHostCache		= Array( );
+dnsHostCache['127.0.0.1']	= 'localhost';
+var dnsHostBlacklist		= Array( );
+
 console.log( "Starting HTTP server on port " + httpPort );
 
 httpServer = http.createServer( function(req,res){
@@ -78,11 +82,59 @@ tcp_tracker.on( 'end', function( session ){
 } );
 
 function sendToClients( session, status ){
-	
 	// ports change frequently enough, we just want the IP's rather than the full key.
 	var hostSessionKey	= session.key.replace( /:[0-9]*/g, '' );
 	
+	var sessionNameToSend	= getReverseDns( hostSessionKey );
+
 	boundIo.broadcast( [ {	current_cap_time: session.current_cap_time, 
-				session_key: hostSessionKey,
+				session_key: sessionNameToSend,
 				status: status } ] );
 };
+
+function getReverseDns( sessionKeyString ){
+	var sessionKeyStringParts	= sessionKeyString.split( "-" );
+
+	var possibleReturn		= Array( );
+	for( var x=0; x<sessionKeyStringParts.length; x++ ){
+
+		console.log( sessionKeyStringParts[x] );
+		
+		// Already in the dnsHostCache..
+		if( typeof dnsHostCache[sessionKeyStringParts[x].toString()] != 'undefined' ){
+			possibleReturn[x] = dnsHostCache[sessionKeyStringParts[x].toString()];
+		// Blacklisted..
+		}else if( typeof dnsHostBlacklist[sessionKeyStringParts[x].toString()] != 'undefined' ){
+			possibleReturn[x] = sessionKeyStringParts[x];
+		// Try and get dns.. add to blacklist if fail.
+		}else{
+			dns.reverse( sessionKeyStringParts[x], function( err, addresses ){
+				if( err ){
+					console.log( "Reverse dns for " + sessionKeyStringParts[x] + " failed." );
+					dnsHostBlacklist.push( sessionKeyStringParts[x] );
+					possibleReturn[x] = sessionKeyStringParts[x];
+				}else{
+					console.log( "Reverse dns for " + sessionKeyStringParts[x] + " is " + addresses[0] );
+
+					// Only use the first address returned.. see documentation - dns.resolve 
+					// returns an array.
+					dnsHostCache[sessionKeyStringParts[x]] = addresses[0];
+					possibleReturn[x] = addresses[0];
+				}
+			} );
+		}
+	}
+
+
+	if( typeof possibleReturn[0] === 'undefined' ){
+		possibleReturn[0] = sessionKeyStringParts[0];
+	}
+
+	if( typeof possibleReturn[1] === 'undefined' ){
+		possibleReturn[1] = sessionKeyStringParts[1];
+	}
+
+	console.log( sys.inspect( possibleReturn ) );
+
+	return possibleReturn[0] + "-" + possibleReturn[1];
+}
