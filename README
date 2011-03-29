@@ -1,3 +1,5 @@
-Written in javascript utilizing nodejs as well as node modules: socket.io, pcap, http.
+Written in javascript utilizing nodejs.
+Required modules:
+	socket.io, pcap.
 
-Allows a website to be accessible that displays in realtime the current tcp connections.
+Revision 29f2f50262c7491e56feb33f93028e3b5e7176e3 contains a proof of concept version of network-graph.
