@@ -1,3 +1,5 @@
 Written in javascript utilizing nodejs.
 Required modules:
 	socket.io, pcap.
+
+See the 'stable' branch for an (always) functional tree.
