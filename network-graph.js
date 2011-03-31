@@ -7,9 +7,7 @@ debug( "Starting up.." );
 
 debug( "Setting defaults and creating variables.." );
 var httpPort	= "default";
-var filter	= "tcp";
 var interface	= "";
-var pcapSession;
 var ioInstance;
 
 debug( "Including modules.." );
@@ -25,8 +23,7 @@ var arguments		= require( "arguments" );
 arguments.parse( [
 	{ 'name': /^(-h|--help)$/, 'expected': null, 'callback': showHelp },
 	{ 'name': /^(-p|--port)$/, 'expected': /^[0-9]*$/, 'callback': setPort },
-	{ 'name': /^(-i|--interface)$/, 'expected': /[a-zA-Z0-9]*$/, 'callback': setInterface },
-	{ 'name': /^(-f|--filter)$/, 'expected': /^[a-zA-Z.-0-9]*$/, 'callback': setFilter }
+	{ 'name': /^(-i|--interface)$/, 'expected': /[a-zA-Z0-9]*$/, 'callback': setInterface }
 		], main, invalidArgument );
 
 
@@ -34,7 +31,6 @@ function showHelp( end ){
 	var msg	= "\nUsage:	(-h|--help): This message.\n";
 	msg	+="	(-p|--port): The HTTP port.\n";
 	msg	+="	(-i|--interface): The interface to listen on.\n";
-	msg	+="	(-f|--filter): The filter to utilize when listening on the device.";
 	
 	debug( msg );
 	process.exit( 1 );
@@ -47,11 +43,6 @@ function setPort( end, portToSet ){
 
 function setInterface( end, interfaceToListenOn ){
 	interface	= interfaceToListenOn;
-	end( );
-}
-
-function setFilter( end, filterToSet ){
-	filter		= filterToSet;
 	end( );
 }
 
@@ -127,9 +118,23 @@ function main( ){
 	debug( "Starting pcap sesion on interface '" + interface + "' with filter '" + filter + "'" );
 	pcapSession = pcap.createSession( interface, filter );
 
-	pcapSession.on( "packet", function( rawPacket ){
-		var packet	= pcap.decode.packet( rawPacket );
-		
+	debug( "Setting listeners for socket.io.." );
+	ioInstance.on( 'connection', function( client ){
+		// New client connection.
+		// Do things for startup..
+
+		// Start up the pcapSession.. 
+		// debug( "Starting pcap sesion on interface '" + interface + "' with filter '" + filter + "'" );
+		// pcapSession = pcap.createSession( interface, filter );
+
+		// pcapSession.on( "packet", function( rawPacket ){
+		//	var packet = pcap.decode.packet( rawPacket );
+		//} );
+
+		//client.on( 'message', function( msg ){
+			// Parse the client message.
+		//} );
+
 	} );
 
 } // end of main
