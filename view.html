@@ -1,258 +1,26 @@
 <html>
-    <head>
-        <title>network-graph</title>
-        <script src="/socket.io/socket.io.js" type='text/javascript'></script>
-        <script src="/jquery.js" type="text/javascript"></script>
+	<head>
+	<title>network-graph</title>
+	<script src="/socket.io/socket.io.js" type='text/javascript'></script>
+	<script src="/jquery.js" type="text/javascript"></script>
 	<script src="/jquery.flot.js" type="text/javascript"></script>
 	<style type='text/css'>
 		body{
 			font-family: Arial;
 			font-size: 120%;
 		}
-		.box {
-			padding: 10px;
-			background-color: #eee;
-			border: 1px solid #ccc;
-			width: 835px;
-		}
-		.messages{
-			font-weight: bold;
-		}
-		#debug{
-			font-size: 60%;
-		}
-		#graph{
-			margin: 25px;
-			height: 200px;
-			width: 800px;
-			align: left;
-			vertical-align: top;
-		}
-		#legendContainer{
-			font-size: 80%;
-			vertical-align: top;
-			position: absolute;
-			width: 200px;
-			right: 25px;
-			top: 50px;
-			margin: 25px;
-		}
 	</style>
-    </head>
-<body>
-	<h1>network-graph</h1>
-	<div class='box messages'>Currently: <span id='status'></span></div>
-	<div id='graph'></div>
-	<div id='legendContainer'></div>
-	<div class='messages'>Debug:</div>
-	<div id='debug' class='box'></div>
 	<script type='text/javascript'>
-
-		function debug( msg ){
-			$("#debug").append( msg + "<br>\n" );
-		}
-
-		var plotOptions		= {
-						series: { shadowSize: 0 },
-						yaxis: { min: 0 },
-						xaxis: {
-							mode: "time",
-							minTickSize: [ 5, "second" ]
-						 },
-						legend: {
-							show: true,
-							container: $("#legendContainer")
-						}
-					};
-
-		// How fast in ms to update the graph.. > will eat CPU on clients.
-		var updateInterval	= 30;
-
-		// How many microseconds should the graph show at any given time?
-		var graphTimeSize	= 1000*60*1;
-
-		var globalIndexArray	= [ ];
-		var plotInstance	= $.plot( "#graph", [ [ [ ] ] ], plotOptions );
-
-		function updateGraph( ){
-
-			// Why define this in the loop? It's close enough to be called every updateInterval.
-			var currentTime	= new Date( ).getTime();
-			var minTime	= currentTime - graphTimeSize;
-
-			var dataString = "[ ";
-			// Each connection..
-			for( var x=0; x<globalIndexArray.length; x++ ){
-
-				var label		= globalIndexArray[x][1];
-				var tmpGlobalDataArray	= window[globalIndexArray[x][0]];
-
-				// Delete old global vars and remove them from globalIndex if all points are 0
-				// and they've moved past the window.
-				// The if statement is simply for performance.. 
-				if( tmpGlobalDataArray.length > 500 ){
-					var allZero = true;
-					for( var z=0; z<tmpGlobalDataArray.length; z++ ){
-						if( tmpGlobalDataArray[z][1] > 0 ){
-							allZero = false;
-						}
-					}
-
-					if( allZero ){
-						debug( "Removing graph '" + label + "'." );
-						delete window[globalIndexArray[x][0]];
-						globalIndexArray.splice( x, 1 );
-						continue;
-					}
-				}
-
-				// Go through the tmpGlobalDataArray and remove old elements.
-				for( var t=0; t<tmpGlobalDataArray.length; t++ ){
-					if( tmpGlobalDataArray[t][0] < minTime ){
-						tmpGlobalDataArray.splice( t, 1 );
-					}
-				}
-
-				// Add a new element with the current time.. this makes a nice smooth graph.
-				var tmpArrayToAdd	= new Array( );
-				tmpArrayToAdd[0]	= currentTime;
-				tmpArrayToAdd[1]	= tmpGlobalDataArray[tmpGlobalDataArray.length-1][1];
-				tmpGlobalDataArray.push( tmpArrayToAdd );
-				
-				// Start defining the dataString.. 
-				dataString	+= "{ lines: { show: true, fill: 0.1, lineWidth: 2 }, label: \"" + label + "\", data: [ ";
-
-				// Loop through the data points in the particular connection array.
-				for( var y=0; y<tmpGlobalDataArray.length; y++ ){
-					dataString += " [ " + tmpGlobalDataArray[y][0] + ", " + tmpGlobalDataArray[y][1] + " ]";
-
-					// Append a comma unless the last element in the array.
-					if( y !== tmpGlobalDataArray.length-1 ){
-						dataString += ",";
-					}
-				}
-
-				dataString += " ] }";
-
-				// Append a comma to every connection iteration unless it is the last one.
-				if( x != globalIndexArray.length-1 ){
-					dataString += ",";
-				} 
-			}
-
-			dataString	+= " ]\n";
-
-			// Ugly eval here.. not nice.
-			eval( 'plotInstance.setData( ' + dataString + ' );' );
-			plotInstance.setupGrid();
-			plotInstance.draw();
-
-			setTimeout( updateGraph, updateInterval );
-		}
-
 		$(document).ready( function( ){
-			function esc( msg ){
-				return msg.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
-			}
-
-			function message( msg ){
-				$("#status").html( esc( msg ) + "<br />\n" );
-			}
-
-			function handleInformation( obj ){
-				// Grab the information passed from network-graph.js on the server side.
-				var current_cap_time	= obj.current_cap_time.toString().replace(/[0-9]{3}\.[0-9]*/, '');
-
-				// Check to see if current_cap_time is in the past. If it is, replace it with the current time.
-				var currentDate	= Math.round( new Date( ).getTime( ) / 1000 );
-				if( current_cap_time < currentDate ){
-					current_cap_time = currentDate + "000";
-				}else{
-					current_cap_time += "000";
-				}
-
-				// The prefix of 'a_' and the replacement is so that the session can be used as an array index in js.
-				var session_key		= "a_" + obj.session_key.replace( /[-.]/g, '_' );
-				var status		= obj.status;
-
-				if( status == 'start' ){
-					// Create the entry in the index array if there isn't one already.
-					var found = false;
-					for( var x=0; x<globalIndexArray.length; x++ ){
-						if( globalIndexArray[x][0] === session_key ){
-							found = true;
-						}
-					}
-
-					// The globalIndexArray
-					if( !found ){
-						var tmpArray	= [];
-						tmpArray[0]	= session_key;
-						tmpArray[1]	= obj.session_key;
-
-						globalIndexArray.push( tmpArray );
-					}
-					
-					// Global variable containing data.. Define if not defined already.
-					if( typeof window[session_key] === 'undefined' ){
-						debug( "Adding graph '" + obj.session_key + "'" );
-						window[session_key]	= new Array( );
-					}
-
-					var tmpGlobalDataArray	= window[session_key];
-					
-					var tmpArray	= new Array( );
-					tmpArray[0]	= current_cap_time;
-
-					if( tmpGlobalDataArray.length == 0 ){
-						tmpArray[1] = 1;
-					}else{
-						tmpArray[1]	= tmpGlobalDataArray[tmpGlobalDataArray.length-1][1]+1;
-					}
-
-					window[session_key].push( tmpArray );
-				}else if( status == 'end' ){
-					var found = false;
-					for( var x=0; x<globalIndexArray.length; x++ ){
-						if( globalIndexArray[x][0] == session_key ){
-							found = true;
-						}
-					}
-
-					if( !found ){
-						debug( "Possible error. Got tcp session end statement without session being in globalIndexArray." );
-					}else{
-						// In globalIndexArray, check to see if global var is defined.
-						if( typeof window[session_key] === 'undefined' ){
-							debug( "Possible error. Session is in globalIndexArray, but no global variable containing data is set." );
-						}else{
-							var tmpGlobalDataArray	= window[session_key];
-
-							// Append a new array to the global data one.. decrement number of connections..
-							var tmpArray	= new Array( );
-							tmpArray[0]	= current_cap_time;
-							tmpArray[1]	= window[session_key][window[session_key].length-1][1]-1;
-
-							window[session_key].push( tmpArray );
-						}
-					}
-				}
-
-				debug( "Session: '" + obj.session_key + "', status: '" + obj.status + "'" );
-			}
-
-			message( "Starting up socket.io" );
-			
 			var socket	= new io.Socket( null, { port: 8080, rememberTransport: false } );
 			socket.connect( );
 
 			socket.on( 'message', function( obj ){ handleInformation( obj ); } );
 			socket.on( 'connect', function( ){ message( 'Connected' ); } );
 			socket.on( 'disconnect', function( ){ message( 'Disconnected' ); } );
-
-			// Call only once..
-			updateGraph();
 		});
 	</script>
+<body>
+	<h1>network-graph</h1>
 </body>
 </html>
