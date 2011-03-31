@@ -21,7 +21,7 @@ var io			= require( "socket.io" );
 var pcap		= require( "pcap" );
 var arguments		= require( "arguments" );
 
-arguments.parse([
+arguments.parse( [
 	{ 'name': /^(-h|--help)$/, 'expected': null, 'callback': showHelp },
 	{ 'name': /^(-p|--port)$/, 'expected': /^[0-9]*$/, 'callback': setPort },
 	{ 'name': /^(-i|--interface)$/, 'expected': /[a-zA-Z0-9]*$/, 'callback': setInterface },
@@ -36,7 +36,7 @@ function showHelp( end ){
 	msg	+="	(-f|--filter): The filter to utilize when listening on the device.\n";
 	
 	debug( msg );
-	end( );
+	process.exit( 1 );
 }
 
 function setPort( end, portToSet ){
@@ -63,6 +63,7 @@ function invalidArgument( arg, missingValue ){
 }
 
 function main( ){
+
 	debug( "Starting HTTP server on port " + httpPort );
 
 	httpServer = http.createServer( function(req,res){
