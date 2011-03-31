@@ -1,5 +1,3 @@
 Written in javascript utilizing nodejs.
 Required modules:
 	socket.io, pcap.
-
-Revision 29f2f50262c7491e56feb33f93028e3b5e7176e3 contains a proof of concept version of network-graph.
