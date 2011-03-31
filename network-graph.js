@@ -153,9 +153,12 @@ function main( ){
 					client.pcapSession = pcap.createSession( interface, client.filter );
 					client.pcapSession.on( "packet", function( rawPacket ){
 						var packet = pcap.decode.packet( rawPacket );
-						
-						// debug, just send all the packets with no formatting.
-						client.send( packet );
+
+						// This could die on packets that are not ip traffic.
+						client.send( [ { 	packet: true,
+									packetTime: packet.pcap_header.time_ms,
+									packetSaddr: packet.link.ip.saddr,
+									packetDaddr: packet.link.ip.daddr } ] );
 					} );
 				}else{
 					// client.pcapSession is already defined.

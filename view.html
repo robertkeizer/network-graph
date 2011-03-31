@@ -5,17 +5,20 @@
 	<script src="/jquery.js" type="text/javascript"></script>
 	<script src="/jquery.ui.js" type="text/javascript"></script>
 	<link type="text/css" href="/jquery.ui.css" rel="stylesheet" />
-
 	<script type='text/javascript'>
 		function showMessage( msg ){
 			$("#message").html( msg + "<br>\n" );
 		}
 
 		function debug( msg ){
+			msg = msg.replace( /</, '&lt;' ).replace( />/, '&gt;' );
 			$("#debug").append( msg + "<br>\n" );
 		}
 
 		$(document).ready( function( ){
+
+			var pcapSessionStarted	= false;
+
 			var socket	= new io.Socket( null, { port: 8080, rememberTransport: false } );
 
 			showMessage( "Connecting to socket.. " );
@@ -26,8 +29,15 @@
 			} );
 
 			socket.on( 'message', function( obj ){
+				// Request/response
 				if( typeof obj.request != 'undefined' ){
 					parseRequestResponse( obj );
+
+				// packets
+				}else if( typeof obj.packet != 'undefined' ){
+					debug( "Got packet with packetTime of '" + obj.packetTime + "'. '" + obj.packetSaddr + "'->'" + obj.packetDaddr + "'" );
+	
+				// Something else
 				}else{
 					debug( "Got unknown message of '" + obj.toString() + "'" );
 				}
@@ -52,7 +62,7 @@
 
 			$("#filter-diag").dialog({
 				autoOpen: false,
-				height: 150,
+				height: 200,
 				width: 400,
 				modal: true,
 				position: top,
@@ -60,33 +70,59 @@
 					"Set filter": function( ){
 						socket.send( [ { request: 'filter', response: $("#filter").val() } ] );
 						$(this).dialog( "close" );
+						startPcap( );
 					}
 				}
 			} );
+
+			if( !pcapSessionStarted ){
+				$("#graph").html( 'The pcap session has not been started.' );
+			}
+			
+			function startPcap( ){
+				debug( "Sending startPcap message to server.." );
+				socket.send( [ { request: 'startPcap' } ] );
+				pcapSessionStarted	= true;
+
+				$("#graph").html( 'The pcap session has been started..' );
+			}
 		});
 	</script>
 	<style type='text/css'>
 		body {
 			font-family: Arial;	
 		}
+		#body {
+			margin-left: 20px;
+		}
+		#message {
+			border: 2px solid #ccc;
+			font-weight: bold;
+			font-size: 120%;
+			margin: 10px;
+			padding: 5px;
+		}
 		#filter-diag {
-			border: 1px solid black;
 			background-color: #eee;
-			margin: 25px;
+		}
+		#debug {
+			border: 2px solid #ccc;
+			margin: 10px;
+			padding: 5px;
+			font-size: 60%;
 		}
 	</style>
 <body>
 	<h1>network-graph</h1>
-	<div id='message'></div>
-	<div id='filter-diag' title='Set filter'>
-		<form>
-			<fieldset>
-				<label for="filter">Filter</label>
-				<input type="text" name="filter" id="filter" class="text ui-widget-common ui-corner-all" />
-			</fieldset>
-		</form>
+	<div id='body'>
+		<div id='message'></div>
+		<div id='graph' style='width: 800px;height: 250px;'></div>
+		<div id='filter-diag' title='Set filter'>
+			<form>
+				Filter: <input type="text" name="filter" id="filter" />
+			</form>
+		</div>
+		<div id='debug'></div>
 	</div>
-	</div>
-	<div id='debug'></div>
 </body>
 </html>
