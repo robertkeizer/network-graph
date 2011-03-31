@@ -115,26 +115,46 @@ function main( ){
 	debug( "Starting up socket.io.." );
 	ioInstance = io.listen( httpServer, { log: ioLog } );
 
-	debug( "Starting pcap sesion on interface '" + interface + "' with filter '" + filter + "'" );
-	pcapSession = pcap.createSession( interface, filter );
-
 	debug( "Setting listeners for socket.io.." );
 	ioInstance.on( 'connection', function( client ){
-		// New client connection.
-		// Do things for startup..
 
-		// Start up the pcapSession.. 
-		// debug( "Starting pcap sesion on interface '" + interface + "' with filter '" + filter + "'" );
-		// pcapSession = pcap.createSession( interface, filter );
+		debug( "New client with ID of '" + client.sessionId + "'" );
 
-		// pcapSession.on( "packet", function( rawPacket ){
-		//	var packet = pcap.decode.packet( rawPacket );
-		//} );
+		client.send( [ { request: 'filter' } ] );
 
-		//client.on( 'message', function( msg ){
-			// Parse the client message.
-		//} );
+		client.on( 'message', function( msg ){
 
-	} );
+			// Filter came back to server
+			if( msg.request == 'filter' && typeof msg.response != 'undefined' ){
+				debug( "Set filter to '" + msg.response + "' for client '" + client.sessionId + "'" );
+				client.filter = msg.response;
 
-} // end of main
+			// If client requests the filter..
+			}else if( msg.request == 'filter' && typeof msg.response == 'undefined' ){
+				client.send( [ { request: 'filter', response: client.filter } ] );
+
+			// Start the pcap session..
+			}else if( msg.request == 'startPcap' ){
+				if( typeof client.pcapSession == 'undefined' ){
+					client.pcapSession = pcap.createSession( interface, client.filter );
+					client.pcapSession.on( "packet", function( rawPacket ){
+						var packet = pcap.decode.packet( rawPacket );
+						
+						// debug, just send all the packets with no formatting.
+						client.send( packet );
+					} );
+				}else{
+					// client.pcapSession is already defined.
+					debug( "I don't know how to handle the creation of a pcap session that is already started.." );
+				}
+			}else if( msg.request == 'stopPcap' ){
+				if( typeof client.pcapSession != 'undefined' ){
+					// Stop the pcap session..
+				}else{
+					debug( "I cannot stop the pcap session that doesn't exist." );
+				}
+			}
+
+		} );		// End of client.on
+	} );			// End of ioInstance.on( 'connection' )
+} 				// end of main
