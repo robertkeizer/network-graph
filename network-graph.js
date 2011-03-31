@@ -115,25 +115,30 @@ function main( ){
 	debug( "Starting up socket.io.." );
 	ioInstance = io.listen( httpServer, { log: ioLog } );
 
-	debug( "Starting pcap sesion on interface '" + interface + "' with filter '" + filter + "'" );
-	pcapSession = pcap.createSession( interface, filter );
-
 	debug( "Setting listeners for socket.io.." );
 	ioInstance.on( 'connection', function( client ){
-		// New client connection.
-		// Do things for startup..
+		client.send( [ { request: 'filter' } ] );
 
-		// Start up the pcapSession.. 
-		// debug( "Starting pcap sesion on interface '" + interface + "' with filter '" + filter + "'" );
-		// pcapSession = pcap.createSession( interface, filter );
+		client.on( 'message', function( message ){
+			if( message.request == 'filter' && typeof message.response != 'undefined' ){
+				setFilter( client, message.response );
+				startPcap( client );
+			}
+		} );
 
-		// pcapSession.on( "packet", function( rawPacket ){
-		//	var packet = pcap.decode.packet( rawPacket );
-		//} );
+		function startPcap( clientObj ){
+			debug( "Starting pcap session on interface '" + interface + "' with filter '" + clientObj.filter + "'" );
+			clientObj.pcapSession	= pcap.createSession( interface, clientObj.filter );
+			
+			clientObj.pcapSession.on( "packet", function( rawPacket ){
+				var packet = pcap.decode.packet( rawPacket );
+				
+			} );
+		}
 
-		//client.on( 'message', function( msg ){
-			// Parse the client message.
-		//} );
+		function setFilter( clientObj, newFilter ){
+			clientObj.filter = newFilter;
+		}
 
 	} );
 

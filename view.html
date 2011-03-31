@@ -9,10 +9,28 @@
 		}
 
 		$(document).ready( function( ){
+			
+			function handleRequest( obj ){
+				if( typeof obj.response != 'undefined' ){
+					showMessage( "Server response for '" + obj.request + "' was '" + obj.response + "'" );
+				}else{
+					showMessage( "Server is requesting '" + obj.request +"'" );
+				}
+			}
+
+			showMessage( "Opening up socket.." );
+
 			var socket	= new io.Socket( null, { port: 8080, rememberTransport: false } );
 			socket.connect( );
 
-			//socket.on( 'message', function( obj ){ handleInformation( obj ); } );
+			socket.on( 'message', function( obj ){ 	
+				if( typeof obj.request != 'undefined' ){
+					handleRequest( obj );
+				}else{
+					// Debug
+					showMessage( "Unknown message recieved..: " + obj.toString() );
+				}
+			} );
 			socket.on( 'connect', function( ){ showMessage( 'Connected' ); } );
 			socket.on( 'disconnect', function( ){ showMessage( 'Disconnected' ); } );
 		});
