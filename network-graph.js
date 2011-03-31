@@ -118,4 +118,9 @@ function main( ){
 	debug( "Starting pcap sesion on interface '" + interface + "' with filter '" + filter + "'" );
 	pcapSession = pcap.createSession( interface, filter );
 
+	pcapSession.on( "packet", function( rawPacket ){
+		var packet	= pcap.decode.packet( rawPacket );
+		
+	} );
+
 } // end of main
