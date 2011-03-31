@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 function debug( msg ){
 	console.log( msg );
 }
@@ -5,7 +6,7 @@ function debug( msg ){
 debug( "Starting up.." );
 
 debug( "Setting defaults and creating variables.." );
-var httpPort	= "8080";
+var httpPort	= "default";
 var filter	= "tcp";
 var interface	= "";
 var pcapSession;
@@ -30,10 +31,10 @@ arguments.parse( [
 
 
 function showHelp( end ){
-	var msg	= "Usage:	(-h|--help): This message.\n";
+	var msg	= "\nUsage:	(-h|--help): This message.\n";
 	msg	+="	(-p|--port): The HTTP port.\n";
 	msg	+="	(-i|--interface): The interface to listen on.\n";
-	msg	+="	(-f|--filter): The filter to utilize when listening on the device.\n";
+	msg	+="	(-f|--filter): The filter to utilize when listening on the device.";
 	
 	debug( msg );
 	process.exit( 1 );
@@ -63,6 +64,10 @@ function invalidArgument( arg, missingValue ){
 }
 
 function main( ){
+
+	if( httpPort == "default" ){
+		showHelp( );
+	}
 
 	debug( "Starting HTTP server on port " + httpPort );
 
