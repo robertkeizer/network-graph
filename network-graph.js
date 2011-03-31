@@ -1,7 +1,6 @@
 console.log( "Starting up.." );
 var sys			= require( "sys" );
 var fs			= require( "fs" );
-var dns			= require( "dns" );
 var http		= require( "http" );
 var url			= require( "url" );
 var io			= require( "socket.io" );
@@ -9,10 +8,6 @@ var pcap		= require( "pcap" );
 
 var httpPort 		= "8080";
 var filter		= "tcp";
-
-var dnsHostCache		= Array( );
-dnsHostCache['127.0.0.1']	= 'localhost';
-var dnsHostBlacklist		= Array( );
 
 console.log( "Starting HTTP server on port " + httpPort );
 
