@@ -88,8 +88,22 @@ function main( ){
 		}else if ( path.match( /\.js$/ ) ){
 			fs.readFile(__dirname+path,function(err,data){
 				if(err){ return send404(res); };
-			sendFile( res, data, 'text/javascript' );
-		} );
+				sendFile( res, data, 'text/javascript' );
+			} );
+
+		// css files..
+		}else if (path.match( /\.css$/ ) ){
+			fs.readFile(__dirname+path,function(err,data){
+				if(err){ return send404(res); };
+				sendFile( res, data, 'text/css' );
+			 } );
+		
+		// png files..
+		}else if( path.match( /\.png$/ ) ){
+			fs.readFile(__dirname+path,function(err,data){
+				if(err){ return send404(res); }; 
+				sendFile( res, data, 'image/png' );
+			} );
 
 		// not found.
 		}else{

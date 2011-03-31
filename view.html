@@ -4,6 +4,8 @@
 	<script src="/socket.io/socket.io.js" type='text/javascript'></script>
 	<script src="/jquery.js" type="text/javascript"></script>
 	<script src="/jquery.ui.js" type="text/javascript"></script>
+	<link type="text/css" href="/jquery.ui.css" rel="stylesheet" />
+
 	<script type='text/javascript'>
 		function showMessage( msg ){
 			$("#message").html( msg + "<br>\n" );
@@ -41,7 +43,7 @@
 				debug( "Parsing request of '" + objToParse.request + "'" );
 				if( typeof objToParse.response == 'undefined' ){
 					if( objToParse.request == 'filter' ){
-						showFilterDiag( );
+						$("#filter-diag").dialog( "open" );
 					}else{
 						debug( "Unknown request made for '" + objToParse.request + "'" );
 					}
@@ -50,37 +52,24 @@
 				}
 			}
 
-			function showFilterDiag( ){
-				$("#filter-diag").dialog({
-					autoOpen: false,
-					height: 150,
-					width: 400,
-					modal: true,
-					buttons: {
-						"Set filter": function( ){
-							socket.send( [ { request: 'filter', response: $("#filter").val() } ] );
-						}
+			$("#filter-diag").dialog({
+				autoOpen: false,
+				height: 150,
+				width: 400,
+				modal: true,
+				position: top,
+				buttons: {
+					"Set filter": function( ){
+						socket.send( [ { request: 'filter', response: $("#filter").val() } ] );
+						$(this).dialog( "close" );
 					}
-				} );
-
-				$("#filter-diag").dialog( "open" );
-			}
+				}
+			} );
 		});
 	</script>
 	<style type='text/css'>
 		body {
-			font-size: 120%;
-		}
-		label, input {
-			display: block;
-		}
-		input.text {
-			margin-bottom: 12px; width: 95%; padding .4em;	
-		}
-		fieldset {
-			padding: 0;
-			border: 0;
-			margin-top 25px;
+			font-family: Arial;	
 		}
 		#filter-diag {
 			border: 1px solid black;
@@ -91,7 +80,7 @@
 <body>
 	<h1>network-graph</h1>
 	<div id='message'></div>
-	<div id='filter-diag' title='Filter Dialog'>
+	<div id='filter-diag' title='Set filter'>
 		<form>
 			<fieldset>
 				<label for="filter">Filter</label>
