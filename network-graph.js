@@ -63,6 +63,10 @@ function invalidArgument( arg, missingValue ){
 	}
 }
 
+function ioLog( msg ){
+	// Disable socket messages right now..
+}
+
 function main( ){
 
 	if( httpPort == "default" ){
@@ -118,7 +122,7 @@ function main( ){
 
 
 	debug( "Starting up socket.io.." );
-	ioInstance = io.listen( httpServer );
+	ioInstance = io.listen( httpServer, { log: ioLog } );
 
 	debug( "Starting pcap sesion on interface '" + interface + "' with filter '" + filter + "'" );
 	pcapSession = pcap.createSession( interface, filter );

@@ -3,24 +3,22 @@
 	<title>network-graph</title>
 	<script src="/socket.io/socket.io.js" type='text/javascript'></script>
 	<script src="/jquery.js" type="text/javascript"></script>
-	<script src="/jquery.flot.js" type="text/javascript"></script>
-	<style type='text/css'>
-		body{
-			font-family: Arial;
-			font-size: 120%;
-		}
-	</style>
 	<script type='text/javascript'>
+		function showMessage( msg ){
+			$("#message").html( msg + "<br>\n" );
+		}
+
 		$(document).ready( function( ){
 			var socket	= new io.Socket( null, { port: 8080, rememberTransport: false } );
 			socket.connect( );
 
-			socket.on( 'message', function( obj ){ handleInformation( obj ); } );
-			socket.on( 'connect', function( ){ message( 'Connected' ); } );
-			socket.on( 'disconnect', function( ){ message( 'Disconnected' ); } );
+			//socket.on( 'message', function( obj ){ handleInformation( obj ); } );
+			socket.on( 'connect', function( ){ showMessage( 'Connected' ); } );
+			socket.on( 'disconnect', function( ){ showMessage( 'Disconnected' ); } );
 		});
 	</script>
 <body>
 	<h1>network-graph</h1>
+	<div id='message'></div>
 </body>
 </html>
