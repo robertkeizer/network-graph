@@ -142,6 +142,7 @@ function main( ){
 			if( msg.request == 'filter' && typeof msg.response != 'undefined' ){
 				debug( "Set filter to '" + msg.response + "' for client '" + client.sessionId + "'" );
 				client.filter = msg.response;
+				// TODO: stop and start the pcap session if required.. 
 
 			// If client requests the filter..
 			}else if( msg.request == 'filter' && typeof msg.response == 'undefined' ){
@@ -166,6 +167,7 @@ function main( ){
 				}
 			}else if( msg.request == 'stopPcap' ){
 				if( typeof client.pcapSession != 'undefined' ){
+					debug( "Stopping the pcap session for client '" + client.sessionId + "'" );
 					// Stop the pcap session..
 				}else{
 					debug( "I cannot stop the pcap session that doesn't exist." );

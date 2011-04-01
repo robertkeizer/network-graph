@@ -18,6 +18,7 @@
 		$(document).ready( function( ){
 
 			var pcapSessionStarted	= false;
+			var filter = "";
 
 			var socket	= new io.Socket( null, { port: 8080, rememberTransport: false } );
 
@@ -69,14 +70,32 @@
 				buttons: {
 					"Set filter": function( ){
 						socket.send( [ { request: 'filter', response: $("#filter").val() } ] );
+						filter	= $("#filter").val( );
 						$(this).dialog( "close" );
-						startPcap( );
+						updateFilterStatus( );
 					}
 				}
 			} );
 
-			if( !pcapSessionStarted ){
-				$("#graph").html( 'The pcap session has not been started.' );
+			function updateFilterStatus( ){
+				if( filter == "" ){
+					$("#filterStatus").html( 'The filter is currently set to nothing. <a href="#" id="setFilter">click here</a> to set it.' );
+				}else{
+					$("#filterStatus").html( 'The filter is current set to \'' + filter + '\'. <a href="#" id="setFilter">click here</a> to change it.' );
+				}
+
+				$("#setFilter").click( function( obj ){
+					$("#filter-diag").dialog( "open" );
+				} );
+			}
+
+			function updatePcapStatus( ){
+				if( !pcapSessionStarted ){
+					$("#pcapStatus").html( 'The pcap session has not been started. <a href="#" id="startPcap">click here</a> to start it.' );
+					$("#startPcap").click( function( obj ){
+						startPcap( );
+					} );
+				}
 			}
 			
 			function startPcap( ){
@@ -84,8 +103,27 @@
 				socket.send( [ { request: 'startPcap' } ] );
 				pcapSessionStarted	= true;
 
-				$("#graph").html( 'The pcap session has been started..' );
+				$("#pcapStatus").html( 'The pcap session has been started. <a href="#" id="stopPcap">click here</a> to stop it.' );
+				$("#stopPcap").click( function( obj ){
+					stopPcap( );
+				} );
 			}
+
+			function stopPcap( ){
+				debug( "Sending stopPcap message to server.." );
+				socket.send( [ { request: 'stopPcap' } ] );
+
+				//pcapSessionStarted = false
+				// updatePcapStatus( );
+			}
+
+			// For the first time.. the next times it gets called from stopPcap.. 
+			updatePcapStatus( );
+			// For the first time.. the next times it gets called from  $("#filter-diag").dialog( );
+			updateFilterStatus( );
+
+			// Only for show purposes now..
+			$("#graph").html( 'This is where the graph will go..' );
 		});
 	</script>
 	<style type='text/css'>
@@ -95,12 +133,18 @@
 		#body {
 			margin-left: 20px;
 		}
-		#message {
+		#messageContainer {
 			border: 2px solid #ccc;
-			font-weight: bold;
-			font-size: 120%;
 			margin: 10px;
 			padding: 5px;
+		}
+		#message {
+			font-weight: bold;
+			font-size: 120%;
+		}
+		#pcapStatus #filterStatus {
+			font-size: 80%;
+			text-align: right;
 		}
 		#filter-diag {
 			background-color: #eee;
@@ -115,7 +159,19 @@
 <body>
 	<h1>network-graph</h1>
 	<div id='body'>
-		<div id='message'></div>
+		<div id='messageContainer'>
+			<table width='100%'>
+				<tr>
+					<td align='left'><span id='message'></span></td>
+					<td align='right'><span id='pcapStatus'></span></td>
+				</tr>
+				<tr>
+					<td colspan='2' align='right'>
+						<span id='filterStatus'></span>
+					</td>
+				</tr>
+			</table>
+		</div>
 		<div id='graph' style='width: 800px;height: 250px;'></div>
 		<div id='filter-diag' title='Set filter'>
 			<form>
