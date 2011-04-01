@@ -151,6 +151,8 @@ function main( ){
 			// Start the pcap session..
 			}else if( msg.request == 'startPcap' ){
 				if( typeof client.pcapSession == 'undefined' ){
+
+					debug( "Starting pcap session on interface '" + interface + "' with filter of '" + client.filter + "'" );
 					client.pcapSession = pcap.createSession( interface, client.filter );
 					client.pcapSession.on( "packet", function( rawPacket ){
 						var packet = pcap.decode.packet( rawPacket );
@@ -167,10 +169,10 @@ function main( ){
 				}
 			}else if( msg.request == 'stopPcap' ){
 				if( typeof client.pcapSession != 'undefined' ){
+
+					// This is still slightly sloppy? ( Comments in pcap module ).
 					debug( "Stopping the pcap session for client '" + client.sessionId + "'" );
-					// Stop the pcap session..
 					client.pcapSession.close( );
-					// remove the variable..
 					delete client.pcapSession;
 				}else{
 					debug( "I cannot stop the pcap session that doesn't exist." );
