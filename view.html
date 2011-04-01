@@ -113,8 +113,8 @@
 				debug( "Sending stopPcap message to server.." );
 				socket.send( [ { request: 'stopPcap' } ] );
 
-				//pcapSessionStarted = false
-				// updatePcapStatus( );
+				pcapSessionStarted = false
+				updatePcapStatus( );
 			}
 
 			// For the first time.. the next times it gets called from stopPcap.. 

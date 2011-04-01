@@ -169,6 +169,9 @@ function main( ){
 				if( typeof client.pcapSession != 'undefined' ){
 					debug( "Stopping the pcap session for client '" + client.sessionId + "'" );
 					// Stop the pcap session..
+					client.pcapSession.close( );
+					// remove the variable..
+					delete client.pcapSession;
 				}else{
 					debug( "I cannot stop the pcap session that doesn't exist." );
 				}
