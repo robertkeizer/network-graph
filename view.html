@@ -45,8 +45,15 @@
 			} );
 
 			socket.on( 'disconnect', function( ){
-				showMessage( "Disconnected from socket.." );
+				showMessage( "Disconnected from socket. <a href='#' id='connectAgain'>click here</a> to connect again." );
+				$("#connectAgain").click( function( ){
+					connectAgain( );
+				} );
 			} );
+
+			function connectAgain( ){
+				socket.connect( );
+			}
 
 			function parseRequestResponse( objToParse ){
 				debug( "Parsing request of '" + objToParse.request + "'" );
