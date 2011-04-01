@@ -150,6 +150,11 @@ function main( ){
 
 			// Start the pcap session..
 			}else if( msg.request == 'startPcap' ){
+
+				// This still doesn't work 100% because the pcap module can only
+				// handle one session at a time. This will hopefully be fixed 
+				// in the next few weeks.
+
 				if( typeof client.pcapSession == 'undefined' ){
 
 					debug( "Starting pcap session on interface '" + interface + "' with filter of '" + client.filter + "'" );
@@ -169,8 +174,7 @@ function main( ){
 				}
 			}else if( msg.request == 'stopPcap' ){
 				if( typeof client.pcapSession != 'undefined' ){
-
-					// This is still slightly sloppy? ( Comments in pcap module ).
+					// Remove the pcap session..
 					debug( "Stopping the pcap session for client '" + client.sessionId + "'" );
 					client.pcapSession.close( );
 					delete client.pcapSession;
