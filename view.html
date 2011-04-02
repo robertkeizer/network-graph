@@ -55,15 +55,16 @@
 			function parsePacket( obj ){
 				// Notice the id_ prefix.. this is so that the packetIdentifier can be used as a variable.. 
 				var packetIdentifier	= "id_"+obj.packetSaddr+"-"+obj.packetDaddr;
-				// obj.packetTime is 13 places, we only need 10 places.. 
-				var roundedPacketTime	= Math.round( Math.round( obj.packetTime ) / 1000 );
+				// obj.packetTime is 13 places, grab 11 - so that the detail is down to 100ms intervals..
+				var roundedPacketTime	= Math.round( Math.round( obj.packetTime ) / 100 );
 
 				// If the packetIdentifier exists ( ie the connection exists )..
 				if( typeof globalDataArray[packetIdentifier] != 'undefined' ){
 					// Check to see if the roundedPacketTime already exists.. if so increment.
 					if( typeof globalDataArray[packetIdentifier][roundedPacketTime] != 'undefined' ){
-						debug( "Incrementing globalDataArray[" + packetIdentifier + "][" + roundedPacketTime + "] to " + globalDataArray[packetIdentifier][roundedPacketTime] + 1 );
-						globalDataArray[packetIdentifier][roundedPacketTime]++;
+						var tmp = globalDataArray[packetIdentifier][roundedPacketTime] + 1;
+						globalDataArray[packetIdentifier][roundedPacketTime] = tmp;
+						debug( "Incremented globalDataArray[" + packetIdentifier + "][" + roundedPacketTime + "] to " + tmp );
 					}else{
 						// roundedPacketTime didn't exist..
 						debug( "Setting globalDataArray[" + packetIdentifier + "][" + roundedPacketTime + "] to 1." );
@@ -72,7 +73,7 @@
 
 				// Connection doesn't exist..
 				}else{
-					debug( "Setting globalDataArray[" + packetIdentifier + "] to 1." );
+					debug( "Setting globalDataArray[" + packetIdentifier + "][" + roundedPacketTime + "] to 1." );
 					globalDataArray[packetIdentifier]			= Array( );
 					globalDataArray[packetIdentifier][roundedPacketTime]	= 1;
 				}
