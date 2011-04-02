@@ -4,6 +4,7 @@
 	<script src="/socket.io/socket.io.js" type='text/javascript'></script>
 	<script src="/jquery.js" type="text/javascript"></script>
 	<script src="/jquery.ui.js" type="text/javascript"></script>
+	<script src="/jquery.flot.js" type="text/javascript"></script>
 	<link type="text/css" href="/jquery.ui.css" rel="stylesheet" />
 	<script type='text/javascript'>
 		function showMessage( msg ){
@@ -17,10 +18,24 @@
 
 		$(document).ready( function( ){
 
+			// Setup the graph options and instance.
+			var graphOptions	= {	series: { shadowSize: 0 },
+							yaxis: { min: 0 },
+							xaxis: { mode: "time",
+								minTickSize: [ 1, "second" ]
+							}
+						};
+			var graphInstance       = $.plot( "#graph", [ [ [ ] ] ], graphOptions );
+			// last digit is minutes.. ( whole thing is micro seconds ).
+			var graphTimeSize	= 1000*60*1;
+
+
+			// Set some variables that need to be defined..
 			var globalDataArray	= Array( );
 			var pcapSessionStarted	= false;
 			var filter = "";
 
+			// Open up the socket.. This should be changed - hardcoded to 8080 right now.
 			var socket	= new io.Socket( null, { port: 8080, rememberTransport: false } );
 
 			showMessage( "Connecting to socket.. " );
@@ -64,19 +79,18 @@
 					if( typeof globalDataArray[packetIdentifier][roundedPacketTime] != 'undefined' ){
 						var tmp = globalDataArray[packetIdentifier][roundedPacketTime] + 1;
 						globalDataArray[packetIdentifier][roundedPacketTime] = tmp;
-						debug( "Incremented globalDataArray[" + packetIdentifier + "][" + roundedPacketTime + "] to " + tmp );
 					}else{
 						// roundedPacketTime didn't exist..
-						debug( "Setting globalDataArray[" + packetIdentifier + "][" + roundedPacketTime + "] to 1." );
 						globalDataArray[packetIdentifier][roundedPacketTime]	= 1;
 					}
 
 				// Connection doesn't exist..
 				}else{
-					debug( "Setting globalDataArray[" + packetIdentifier + "][" + roundedPacketTime + "] to 1." );
 					globalDataArray[packetIdentifier]			= Array( );
 					globalDataArray[packetIdentifier][roundedPacketTime]	= 1;
 				}
+
+				debug( roundedPacketTime + " " + packetIdentifier );
 			}
 
 			function connectAgain( ){
@@ -152,13 +166,27 @@
 				updatePcapStatus( );
 			}
 
+			function updateGraph( ){
+				var currentTime	= new Date( ).getTime( );
+				var minTime	= currentTime - graphTimeSize;
+				
+				// Loop through each connection.. 
+				// Easier said than done because of the dynamic indexing involved..
+
+
+				// Just to show something is happening..
+				$("#graph").html( currentTime );
+
+				// Loop every 50ms..
+				setTimeout( updateGraph, 50 );
+			}
+
 			// For the first time.. the next times it gets called from stopPcap.. 
 			updatePcapStatus( );
 			// For the first time.. the next times it gets called from  $("#filter-diag").dialog( );
 			updateFilterStatus( );
-
-			// Only for show purposes now..
-			$("#graph").html( 'This is where the graph will go..' );
+			// For the first time.. the next times it will be called by itself..
+			updateGraph( );
 		});
 	</script>
 	<style type='text/css'>
