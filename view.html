@@ -167,11 +167,15 @@
 			}
 
 			function updateGraph( ){
-
-				// Need to remove the old stuff if the packetTime is < minTime still..
-
 				var currentTime	= new Date( ).getTime( );
 				var minTime	= currentTime - graphTimeSize;
+
+				/*
+				 Not quite working yet.
+				graphInstance.getAxes( ).xaxis.min = minTime+"00";
+				graphInstance.getAxes( ).xaxis.max = currentTime+"00";
+				debug( "Xaxis min: " + graphInstance.getAxes( ).xaxis.min + ", xaxis max: " + graphInstance.getAxes( ).xaxis.max );
+				*/
 				
 				var dataString = "[ ";
 				for( var identifier in globalDataArray ){
