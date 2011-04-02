@@ -29,8 +29,6 @@
 			// last digit is minutes.. ( whole thing is micro seconds ).
 			var graphTimeSize	= 1000*60*1;
 
-			var identifiersThatCanBeDeleted = Array( );
-
 			// Set some variables that need to be defined..
 			var globalDataArray	= Array( );
 			var pcapSessionStarted	= false;
@@ -170,23 +168,8 @@
 				var currentTime	= new Date( ).getTime( );
 				var minTime	= currentTime - graphTimeSize;
 
-				/*
-				 Not quite working yet.
-				graphInstance.getAxes( ).xaxis.min = minTime+"00";
-				graphInstance.getAxes( ).xaxis.max = currentTime+"00";
-				debug( "Xaxis min: " + graphInstance.getAxes( ).xaxis.min + ", xaxis max: " + graphInstance.getAxes( ).xaxis.max );
-				*/
-				
 				var dataString = "[ ";
 				for( var identifier in globalDataArray ){
-
-					// Remove old identifiers if they contain no packetTimes..
-					if( typeof identifiersThatCanBeDeleted[identifier] != 'undefined' ){
-						if( globalDataArray[identifier].length == 0 ){
-							delete globalDataArray[identifier];
-							continue;
-						}
-					}
 
 					// Loop through times.. 
 					dataString += "{ lines: { show: true, fill: 0.1, lineWidth: 2 }, label: \"" + identifier.replace( /^id_/, '' ) + "\", data: [ ";
@@ -195,7 +178,6 @@
 
 						// Check to see if the packetTime has gone past the window..
 						if( packetTime+"00" < minTime ){
-							identifiersThatCanBeDeleted[identifier] = 1;
 							delete globalDataArray[identifier][packetTime];
 							continue;
 						}
