@@ -170,12 +170,17 @@
 				var currentTime	= new Date( ).getTime( );
 				var minTime	= currentTime - graphTimeSize;
 				
-				// Loop through each connection.. 
-				// Easier said than done because of the dynamic indexing involved..
-
+				var tmpDebug = "";
+				for( var identifier in globalDataArray ){
+					// Loop through times.. 
+					tmpDebug += identifier + "<br />\n";
+					for( var packetTime in globalDataArray[identifier] ){
+						tmpDebug += packetTime + " = " + globalDataArray[identifier][packetTime] + "<br />\n";
+					}
+				}
 
 				// Just to show something is happening..
-				$("#graph").html( currentTime );
+				$("#graph").html( tmpDebug );
 
 				// Loop every 50ms..
 				setTimeout( updateGraph, 50 );
