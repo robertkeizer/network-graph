@@ -170,17 +170,23 @@
 				var currentTime	= new Date( ).getTime( );
 				var minTime	= currentTime - graphTimeSize;
 				
-				var tmpDebug = "";
+				// Still need to go through and account for missing commas .. 
+
+				var dataString = "[ ";
 				for( var identifier in globalDataArray ){
 					// Loop through times.. 
-					tmpDebug += identifier + "<br />\n";
-					for( var packetTime in globalDataArray[identifier] ){
-						tmpDebug += packetTime + " = " + globalDataArray[identifier][packetTime] + "<br />\n";
-					}
-				}
+					dataString += "{ lines: { show: true, fill: 0.1, lineWidth: 2 }, label: \"" + identifier.replace( /^id_/, '' ) + "\", data: [ ";
 
-				// Just to show something is happening..
-				$("#graph").html( tmpDebug );
+					for( var packetTime in globalDataArray[identifier] ){
+						dataString += " [ " + packetTime + ", " + globalDataArray[identifier][packetTime] + " ], ";
+					}
+					dataString += "[ ] ] },";
+				}
+				dataString += "{ } ]\n";
+
+				eval( "graphInstance.setData( " + dataString + " );" );
+				graphInstance.setupGrid( );
+				graphInstance.draw( );
 
 				// Loop every 50ms..
 				setTimeout( updateGraph, 50 );
@@ -240,7 +246,7 @@
 				</tr>
 			</table>
 		</div>
-		<div id='graph' style='width: 800px;height: 250px;'></div>
+		<div id='graph' style='width:800px;height:250px;'></div>
 		<div id='filter-diag' title='Set filter'>
 			<form>
 				Filter: <input type="text" name="filter" id="filter" />
