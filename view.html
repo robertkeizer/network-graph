@@ -17,6 +17,7 @@
 
 		$(document).ready( function( ){
 
+			var globalDataArray	= Array( );
 			var pcapSessionStarted	= false;
 			var filter = "";
 
@@ -36,8 +37,8 @@
 
 				// packets
 				}else if( typeof obj.packet != 'undefined' ){
-					debug( "Got packet with packetTime of '" + obj.packetTime + "'. '" + obj.packetSaddr + "'->'" + obj.packetDaddr + "'" );
-	
+					parsePacket( obj );
+
 				// Something else
 				}else{
 					debug( "Got unknown message of '" + obj.toString() + "'" );
@@ -50,6 +51,32 @@
 					connectAgain( );
 				} );
 			} );
+
+			function parsePacket( obj ){
+				// Notice the id_ prefix.. this is so that the packetIdentifier can be used as a variable.. 
+				var packetIdentifier	= "id_"+obj.packetSaddr+"-"+obj.packetDaddr;
+				// obj.packetTime is 13 places, we only need 10 places.. 
+				var roundedPacketTime	= Math.round( Math.round( obj.packetTime ) / 1000 );
+
+				// If the packetIdentifier exists ( ie the connection exists )..
+				if( typeof globalDataArray[packetIdentifier] != 'undefined' ){
+					// Check to see if the roundedPacketTime already exists.. if so increment.
+					if( typeof globalDataArray[packetIdentifier][roundedPacketTime] != 'undefined' ){
+						debug( "Incrementing globalDataArray[" + packetIdentifier + "][" + roundedPacketTime + "] to " + globalDataArray[packetIdentifier][roundedPacketTime] + 1 );
+						globalDataArray[packetIdentifier][roundedPacketTime]++;
+					}else{
+						// roundedPacketTime didn't exist..
+						debug( "Setting globalDataArray[" + packetIdentifier + "][" + roundedPacketTime + "] to 1." );
+						globalDataArray[packetIdentifier][roundedPacketTime]	= 1;
+					}
+
+				// Connection doesn't exist..
+				}else{
+					debug( "Setting globalDataArray[" + packetIdentifier + "] to 1." );
+					globalDataArray[packetIdentifier]			= Array( );
+					globalDataArray[packetIdentifier][roundedPacketTime]	= 1;
+				}
+			}
 
 			function connectAgain( ){
 				socket.connect( );
@@ -142,7 +169,7 @@
 		}
 		#messageContainer {
 			border: 2px solid #ccc;
-			margin: 10px;
+			
 			padding: 5px;
 		}
 		#message {
