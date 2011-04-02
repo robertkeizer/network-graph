@@ -22,7 +22,7 @@
 			var graphOptions	= {	series: { shadowSize: 0 },
 							yaxis: { min: 0 },
 							xaxis: { mode: "time",
-								minTickSize: [ 1, "second" ]
+								minTickSize: [ 5, "second" ]
 							}
 						};
 			var graphInstance       = $.plot( "#graph", [ [ [ ] ] ], graphOptions );
@@ -89,8 +89,7 @@
 					globalDataArray[packetIdentifier]			= Array( );
 					globalDataArray[packetIdentifier][roundedPacketTime]	= 1;
 				}
-
-				debug( roundedPacketTime + " " + packetIdentifier );
+				// Add a debug line here if you want to inspect the packets going by..
 			}
 
 			function connectAgain( ){
@@ -167,18 +166,28 @@
 			}
 
 			function updateGraph( ){
+
+				// Need to remove the old stuff if the packetTime is < minTime still..
+
 				var currentTime	= new Date( ).getTime( );
 				var minTime	= currentTime - graphTimeSize;
 				
-				// Still need to go through and account for missing commas .. 
-
 				var dataString = "[ ";
 				for( var identifier in globalDataArray ){
 					// Loop through times.. 
 					dataString += "{ lines: { show: true, fill: 0.1, lineWidth: 2 }, label: \"" + identifier.replace( /^id_/, '' ) + "\", data: [ ";
 
 					for( var packetTime in globalDataArray[identifier] ){
-						dataString += " [ " + packetTime + ", " + globalDataArray[identifier][packetTime] + " ], ";
+
+						// Check to see if the packetTime has gone past the window..
+						if( packetTime+"00" < minTime ){
+							delete globalDataArray[identifier][packetTime];
+							continue;
+						}
+
+						// The appending of the two zeros is to shove the time back into micro seconds.
+						// Change accordingly if you have changed the rounding bit in parsePacket().
+						dataString += " [ " + packetTime + "00, " + globalDataArray[identifier][packetTime] + " ], ";
 					}
 					dataString += "[ ] ] },";
 				}
